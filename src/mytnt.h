@@ -1,6 +1,11 @@
 #ifndef TPCC_TARANTOOL_MYTNT_H
 #define TPCC_TARANTOOL_MYTNT_H
 
+#include <msgpack.h>
+
+#define MYTNT_NO_DATA	100
+#define MYTNT_ERROR	1
+
 typedef enum mytnt_enum_field_types {
 	MYTNT_TYPE_DECIMAL, MYTNT_TYPE_TINY,
 	MYTNT_TYPE_SHORT,  MYTNT_TYPE_LONG,
@@ -28,9 +33,10 @@ typedef enum mytnt_enum_field_types {
 } mytnt_enum_field_types;
 
 typedef struct {
-	struct tnt_stream * tnt;
-	char *error_info;
-	int error_no;
+	struct tnt_stream *tnt;
+	char 		*error_info;
+	int 		error_no;
+	msgpack_zone 	*mempool;
 } MYTNT;
 
 typedef struct {
@@ -40,17 +46,22 @@ typedef struct {
 } MYTNT_BIND;
 
 typedef struct {
+	int		it;		/* iterator by results */
 	char 		*query;
 	int		query_len;
 	int		count_params;
+	int		count_bind;
 	MYTNT		*mytnt;
-	MYTNT_BIND	*params;              /* input parameters */
-	MYTNT_BIND	*bind;                /* output parameters */
+	MYTNT_BIND	*params;	/* input parameters */
+	MYTNT_BIND	*bind;		/* output parameters */
+	msgpack_object	*result;
 } MYTNT_STMT;
 
 int mytnt_stmt_execute(MYTNT_STMT *stmt);
 
 const char *mytnt_error(MYTNT *mytnt);
+
+int mytnt_errno(MYTNT *mytnt);
 
 MYTNT *mytnt_init(MYTNT *mytnt);
 
@@ -67,12 +78,10 @@ int mytnt_stmt_close(MYTNT_STMT * stmt);
 
 int mytnt_stmt_bind_param(MYTNT_STMT *stmt, MYTNT_BIND *bnd);
 
-//my_bool STDCALL mysql_stmt_free_result(MYSQL_STMT *stmt);
-//
-//my_bool STDCALL mysql_stmt_bind_result(MYSQL_STMT * stmt, MYSQL_BIND * bnd);
-//
-//int STDCALL mysql_stmt_fetch(MYSQL_STMT *stmt);
-//
-//my_bool STDCALL mysql_stmt_free_result(MYSQL_STMT *stmt);
+int mytnt_stmt_free_result(MYTNT_STMT *stmt);
+
+int mytnt_stmt_bind_result(MYTNT_STMT * stmt, MYTNT_BIND * bnd, int count_bind);
+
+int mytnt_stmt_fetch(MYTNT_STMT *stmt);
 
 #endif //TPCC_TARANTOOL_MYTNT_H

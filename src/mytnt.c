@@ -13,6 +13,10 @@ MYTNT *mytnt_init(MYTNT *mytnt_arg) {
 	mytnt->error_no = 0;
 	mytnt->error_info = NULL;
 
+	mytnt->mempool = (msgpack_zone *) malloc(sizeof(msgpack_zone));
+
+	msgpack_zone_init(mytnt->mempool, 2048);
+
 	return mytnt;
 }
 
@@ -41,6 +45,9 @@ MYTNT_STMT *mytnt_stmt_init(MYTNT *mytnt) {
 	mytnt_stmt->query = NULL;
 	mytnt_stmt->bind = NULL;
 	mytnt_stmt->params = NULL;
+	mytnt_stmt->result = NULL;
+
+	mytnt_stmt->it = 0;
 
 	return mytnt_stmt;
 }
@@ -59,17 +66,23 @@ void mytnt_close(MYTNT *mytnt) {
 		tnt_stream_free(mytnt->tnt);
 	}
 
+	msgpack_zone_destroy(mytnt->mempool);
 	free(mytnt->error_info);
 	free(mytnt);
 }
 
 int mytnt_stmt_close(MYTNT_STMT * stmt) {
+	//если бы stmt->params было в куче, то надо free
 	free(stmt);
 	return 0;
 }
 
 const char *mytnt_error(MYTNT *mytnt) {
-	return mytnt->error_info;
+	return mytnt->error_info ? mytnt->error_info : "";
+}
+
+int mytnt_errno(MYTNT *mytnt) {
+	return mytnt->error_no;
 }
 
 int mytnt_stmt_bind_param(MYTNT_STMT *stmt, MYTNT_BIND *bnd) {
@@ -119,6 +132,8 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 	tnt_execute(stmt->mytnt->tnt, stmt->query, stmt->query_len, params);
 	tnt_flush(stmt->mytnt->tnt);
 
+	tnt_stream_free(params);
+
 	struct tnt_reply *reply = tnt_reply_init(NULL);
 	stmt->mytnt->tnt->read_reply(stmt->mytnt->tnt, reply);
 
@@ -133,7 +148,67 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 		strcpy(stmt->mytnt->error_info, reply->error);
 	}
 
+	stmt->result = (msgpack_object *) malloc(sizeof(msgpack_object));
+
+	msgpack_unpack(reply->data, reply->data_end - reply->data, NULL,
+		       stmt->mytnt->mempool, stmt->result);
+
 	tnt_reply_free(reply);
 
 	return stmt->mytnt->error_no;
+}
+
+int mytnt_stmt_free_result(MYTNT_STMT *stmt) {
+	//если бы stmt->bind было в куче, то надо free
+
+	if (stmt->result) {
+		free(stmt->result);
+		stmt->result = NULL;
+	}
+	stmt->it = 0;
+
+	return 0;
+}
+
+int mytnt_stmt_bind_result(MYTNT_STMT * stmt, MYTNT_BIND * bnd, int count_bind) {
+	stmt->bind = bnd;
+	stmt->count_bind = count_bind;
+
+	return 0;
+}
+
+int mytnt_stmt_fetch(MYTNT_STMT *stmt) {
+	if (stmt->result->via.array.size <= stmt->it) {
+		return MYTNT_NO_DATA;
+	}
+
+	int size;
+	char *ptr;
+	char *str;
+
+	for (int i = 0; i < stmt->count_bind; ++i) {
+		switch (stmt->bind[i].buffer_type) {
+		case MYTNT_TYPE_FLOAT:
+			*((float *) stmt->bind[i].buffer) = (float) stmt->result->via.array.ptr[stmt->it].via.array.ptr[i].via.f64;
+			break;
+		case MYTNT_TYPE_LONG:
+			*((int *) stmt->bind[i].buffer) = stmt->result->via.array.ptr[stmt->it].via.array.ptr[i].via.i64;
+			break;
+		case MYTNT_TYPE_STRING:
+			size = stmt->result->via.array.ptr[stmt->it].via.array.ptr[i].via.str.size;
+			ptr = stmt->result->via.array.ptr[stmt->it].via.array.ptr[i].via.str.ptr;
+			str = stmt->bind[i].buffer;
+
+			strncpy(str, ptr, size);
+			str[size] = '\0';
+			break;
+		default:
+			return MYTNT_ERROR;
+
+		}
+	}
+
+	++(stmt->it);
+
+	return 0;
 }

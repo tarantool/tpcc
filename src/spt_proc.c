@@ -3,7 +3,7 @@
  * support routines for the proc tpcc implementation
  */
 
-#include <mysql.h>
+#include "mytnt.h"
 
 #include <stdio.h>
 
@@ -11,8 +11,8 @@
  * report error
  */
 int error(
-    MYSQL        *mysql,
-    MYSQL_STMT   *mysql_stmt
+    MYTNT        *mytnt,
+    MYTNT_STMT   *mytnt_stmt
 )
 {
 /*
@@ -21,8 +21,8 @@ int error(
 		   mysql_stmt_sqlstate(mysql_stmt), mysql_stmt_error(mysql_stmt) );
 	}
 */
-	if(mysql){
-	    fprintf(stderr, "%d, %s, %s\n", mysql_errno(mysql), mysql_sqlstate(mysql), mysql_error(mysql) );
+	if(mytnt){
+	    fprintf(stderr, "%d, %s\n", mytnt_errno(mytnt), mytnt_error(mytnt) );
 	}
 	return (0);
 }
