@@ -1,0 +1,139 @@
+#include <stdlib.h>
+#include <string.h>
+
+#include <tarantool/tarantool.h>
+#include <tarantool/tnt_net.h>
+
+#include "mytnt.h"
+
+MYTNT *mytnt_init(MYTNT *mytnt_arg) {
+	MYTNT *mytnt = (MYTNT *) malloc(sizeof(MYTNT));
+
+	mytnt->tnt = NULL;
+	mytnt->error_no = 0;
+	mytnt->error_info = NULL;
+
+	return mytnt;
+}
+
+int mytnt_real_connect(MYTNT *mytnt, const char *host, unsigned int port) {
+	if(mytnt->tnt) return mytnt->tnt;
+	mytnt->tnt = tnt_net(NULL);
+
+	if(!mytnt->tnt) return -2;
+
+	char uri[128] = {0};
+	snprintf(uri, 128, "%s:%d", host, port);
+	printf("\t[uri]: %s\n", uri);
+
+	tnt_set(mytnt->tnt, TNT_OPT_URI, "localhost:3301");
+	tnt_set(mytnt->tnt, TNT_OPT_SEND_BUF, 0);
+	tnt_set(mytnt->tnt, TNT_OPT_RECV_BUF, 0);
+
+	return tnt_connect(mytnt->tnt);
+}
+
+MYTNT_STMT *mytnt_stmt_init(MYTNT *mytnt) {
+	MYTNT_STMT *mytnt_stmt = (MYTNT_STMT *) malloc(sizeof(MYTNT_STMT));
+
+	mytnt_stmt->mytnt = mytnt;
+
+	mytnt_stmt->query = NULL;
+	mytnt_stmt->bind = NULL;
+	mytnt_stmt->params = NULL;
+
+	return mytnt_stmt;
+}
+
+int mytnt_stmt_prepare(MYTNT_STMT *stmt, const char *query,
+		       unsigned long length)
+{
+	stmt->query = query;
+	stmt->query_len = length;
+	return 0;
+}
+
+void mytnt_close(MYTNT *mytnt) {
+	if (mytnt->tnt != NULL) {
+		tnt_close(mytnt->tnt);
+		tnt_stream_free(mytnt->tnt);
+	}
+
+	free(mytnt->error_info);
+	free(mytnt);
+}
+
+int mytnt_stmt_close(MYTNT_STMT * stmt) {
+	free(stmt);
+	return 0;
+}
+
+const char *mytnt_error(MYTNT *mytnt) {
+	return mytnt->error_info;
+}
+
+int mytnt_stmt_bind_param(MYTNT_STMT *stmt, MYTNT_BIND *bnd) {
+	stmt->params = bnd;
+
+	stmt->count_params = 0;
+	for (int i = 0; stmt->query[i] != '\0'; i++) {
+		if (stmt->query[i] == '?')
+			stmt->count_params++;
+	}
+
+	return 0;
+}
+
+int mytnt_stmt_execute(MYTNT_STMT *stmt) {
+	struct tnt_stream *params;
+	params = tnt_object(NULL);
+
+	if (tnt_object_type(params, TNT_SBO_PACKED) == -1)
+		return -1;
+	if (tnt_object_add_array(params, 0) == -1)
+		return -1;
+
+	for (int i = 0; i < stmt->count_params; ++i) {
+		switch (stmt->params[i].buffer_type) {
+			case MYTNT_TYPE_FLOAT:
+				if (tnt_object_add_float(params, *((float *) stmt->params[i].buffer)) == -1)
+					return -1;
+				break;
+			case MYTNT_TYPE_LONG:
+				if (tnt_object_add_int(params, *((int *) stmt->params[i].buffer)) == -1)
+					return -1;
+				break;
+			case MYTNT_TYPE_STRING:
+				if (tnt_object_add_strz(params, stmt->params[i].buffer) == -1)
+					return -1;
+				break;
+			default:
+				return -2;
+
+		}
+	}
+
+	if (tnt_object_container_close(params) == -1)
+		return -1;
+
+	tnt_execute(stmt->mytnt->tnt, stmt->query, stmt->query_len, params);
+	tnt_flush(stmt->mytnt->tnt);
+
+	struct tnt_reply *reply = tnt_reply_init(NULL);
+	stmt->mytnt->tnt->read_reply(stmt->mytnt->tnt, reply);
+
+	stmt->mytnt->error_no = reply->code;
+
+	if (stmt->mytnt->error_info) {
+		free(stmt->mytnt->error_info);
+	}
+
+	if (reply->error) {
+		stmt->mytnt->error_info = (char *) malloc(100 * sizeof(char));
+		strcpy(stmt->mytnt->error_info, reply->error);
+	}
+
+	tnt_reply_free(reply);
+
+	return stmt->mytnt->error_no;
+}
