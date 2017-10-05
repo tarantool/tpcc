@@ -8,7 +8,7 @@
 #include <string.h>
 #include <time.h>
 
-#include <mysql.h>
+#include "mytnt.h"
 
 #include "spt_proc.h"
 #include "tpc.h"
@@ -27,8 +27,8 @@ case 9: strncpy(ol_dist_info, s_dist_09, 25); break; \
 case 10: strncpy(ol_dist_info, s_dist_10, 25); break; \
 }
 
-extern MYSQL **ctx;
-extern MYSQL_STMT ***stmt;
+extern MYTNT **ctx;
+extern MYTNT_STMT ***stmt;
 
 extern FILE *ftrx_file;
 
@@ -100,9 +100,9 @@ int neword( int t_num,
 	clock_t clk1,clk_start;	
 
 
-	MYSQL_STMT*   mysql_stmt;
-        MYSQL_BIND    param[9];
-	MYSQL_BIND    column[12];
+	MYTNT_STMT*   mytnt_stmt;
+        MYTNT_BIND    param[9];
+	MYTNT_BIND    column[12];
 
 	/* EXEC SQL WHENEVER NOT FOUND GOTO sqlerr;*/
 	/* EXEC SQL WHENEVER SQLERROR GOTO sqlerr;*/
@@ -120,42 +120,42 @@ int neword( int t_num,
 		AND c_w_id = w_id 
 		AND c_d_id = :d_id 
 		AND c_id = :c_id;*/
-	mysql_stmt = stmt[t_num][0];
+	mytnt_stmt = stmt[t_num][0];
 
-	memset(param, 0, sizeof(MYSQL_BIND) * 3); /* initialize */
-	param[0].buffer_type = MYSQL_TYPE_LONG;
+	memset(param, 0, sizeof(MYTNT_BIND) * 3); /* initialize */
+	param[0].buffer_type = MYTNT_TYPE_LONG;
 	param[0].buffer = &w_id;
-	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer_type = MYTNT_TYPE_LONG;
 	param[1].buffer = &d_id;
-	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer_type = MYTNT_TYPE_LONG;
 	param[2].buffer = &c_id;
-	if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-	if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+	if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+	if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
-	if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
-	memset(column, 0, sizeof(MYSQL_BIND) * 4); /* initialize */
-	column[0].buffer_type = MYSQL_TYPE_FLOAT;
+//	if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
+	memset(column, 0, sizeof(MYTNT_BIND) * 4); /* initialize */
+	column[0].buffer_type = MYTNT_TYPE_FLOAT;
 	column[0].buffer = &c_discount;
-	column[1].buffer_type = MYSQL_TYPE_STRING;
+	column[1].buffer_type = MYTNT_TYPE_STRING;
 	column[1].buffer = c_last;
 	column[1].buffer_length = sizeof(c_last);
-	column[2].buffer_type = MYSQL_TYPE_STRING;
+	column[2].buffer_type = MYTNT_TYPE_STRING;
 	column[2].buffer = c_credit;
 	column[2].buffer_length = sizeof(c_credit);
-	column[3].buffer_type = MYSQL_TYPE_FLOAT;
+	column[3].buffer_type = MYTNT_TYPE_FLOAT;
 	column[3].buffer = &w_tax;
-	if( mysql_stmt_bind_result(mysql_stmt, column) ) goto sqlerr;
-	switch( mysql_stmt_fetch(mysql_stmt) ) {
+	if( mytnt_stmt_bind_result(mytnt_stmt, column, 4) ) goto sqlerr;
+	switch( mytnt_stmt_fetch(mytnt_stmt) ) {
 	    case 0: //SUCCESS
-	    case MYSQL_DATA_TRUNCATED:
+//	    case MYSQL_DATA_TRUNCATED:
 		break;
 	    case 1: //ERROR
-	    case MYSQL_NO_DATA: //NO MORE DATA
+	    case MYTNT_NO_DATA: //NO MORE DATA
 	    default:
-		mysql_stmt_free_result(mysql_stmt);
+		mytnt_stmt_free_result(mytnt_stmt);
 		goto sqlerr;
 	}
-	mysql_stmt_free_result(mysql_stmt);
+	mytnt_stmt_free_result(mytnt_stmt);
 
 
 #ifdef DEBUG
@@ -168,51 +168,51 @@ int neword( int t_num,
 	        WHERE d_id = :d_id
 		AND d_w_id = :w_id
 		FOR UPDATE;*/
-	mysql_stmt = stmt[t_num][1];
+	mytnt_stmt = stmt[t_num][1];
 
-	memset(param, 0, sizeof(MYSQL_BIND) * 2); /* initialize */
-	param[0].buffer_type = MYSQL_TYPE_LONG;
+	memset(param, 0, sizeof(MYTNT_BIND) * 2); /* initialize */
+	param[0].buffer_type = MYTNT_TYPE_LONG;
 	param[0].buffer = &d_id;
-	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer_type = MYTNT_TYPE_LONG;
 	param[1].buffer = &w_id;
-	if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-	if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+	if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+	if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
-	if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
-	memset(column, 0, sizeof(MYSQL_BIND) * 2); /* initialize */
-	column[0].buffer_type = MYSQL_TYPE_LONG;
+//	if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
+	memset(column, 0, sizeof(MYTNT_BIND) * 2); /* initialize */
+	column[0].buffer_type = MYTNT_TYPE_LONG;
 	column[0].buffer = &d_next_o_id;
-	column[1].buffer_type = MYSQL_TYPE_FLOAT;
+	column[1].buffer_type = MYTNT_TYPE_FLOAT;
 	column[1].buffer = &d_tax;
-	if( mysql_stmt_bind_result(mysql_stmt, column) ) goto sqlerr;
-	switch( mysql_stmt_fetch(mysql_stmt) ) {
+	if( mytnt_stmt_bind_result(mytnt_stmt, column, 2) ) goto sqlerr;
+	switch( mytnt_stmt_fetch(mytnt_stmt) ) {
 	    case 0: //SUCCESS
-	    case MYSQL_DATA_TRUNCATED:
+//	    case MYSQL_DATA_TRUNCATED:
 		break;
 	    case 1: //ERROR
-	    case MYSQL_NO_DATA: //NO MORE DATA
+	    case MYTNT_NO_DATA: //NO MORE DATA
 	    default:
-		mysql_stmt_free_result(mysql_stmt);
+		mytnt_stmt_free_result(mytnt_stmt);
 		goto sqlerr;
 	}
-	mysql_stmt_free_result(mysql_stmt);
+	mytnt_stmt_free_result(mytnt_stmt);
 
 
 	proceed = 3;
 	/*EXEC_SQL UPDATE district SET d_next_o_id = :d_next_o_id + 1
-	        WHERE d_id = :d_id 
+	        WHERE d_id = :d_id
 		AND d_w_id = :w_id;*/
-	mysql_stmt = stmt[t_num][2];
+	mytnt_stmt = stmt[t_num][2];
 
-	memset(param, 0, sizeof(MYSQL_BIND) * 3); /* initialize */
-	param[0].buffer_type = MYSQL_TYPE_LONG;
+	memset(param, 0, sizeof(MYTNT_BIND) * 3); /* initialize */
+	param[0].buffer_type = MYTNT_TYPE_LONG;
 	param[0].buffer = &d_next_o_id;
-	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer_type = MYTNT_TYPE_LONG;
 	param[1].buffer = &d_id;
-	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer_type = MYTNT_TYPE_LONG;
 	param[2].buffer = &w_id;
-	if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-	if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+	if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+	if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
 	o_id = d_next_o_id;
 
@@ -223,29 +223,29 @@ int neword( int t_num,
 	proceed = 4;
 	/*EXEC_SQL INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id,
 			             o_entry_d, o_ol_cnt, o_all_local)
-		VALUES(:o_id, :d_id, :w_id, :c_id, 
+		VALUES(:o_id, :d_id, :w_id, :c_id,
 		       :datetime,
                        :o_ol_cnt, :o_all_local);*/
-	mysql_stmt = stmt[t_num][3];
+	mytnt_stmt = stmt[t_num][3];
 
-	memset(param, 0, sizeof(MYSQL_BIND) * 7); /* initialize */
-	param[0].buffer_type = MYSQL_TYPE_LONG;
+	memset(param, 0, sizeof(MYTNT_BIND) * 7); /* initialize */
+	param[0].buffer_type = MYTNT_TYPE_LONG;
 	param[0].buffer = &o_id;
-	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer_type = MYTNT_TYPE_LONG;
 	param[1].buffer = &d_id;
-	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer_type = MYTNT_TYPE_LONG;
 	param[2].buffer = &w_id;
-	param[3].buffer_type = MYSQL_TYPE_LONG;
+	param[3].buffer_type = MYTNT_TYPE_LONG;
 	param[3].buffer = &c_id;
-	param[4].buffer_type = MYSQL_TYPE_STRING;
+	param[4].buffer_type = MYTNT_TYPE_STRING;
 	param[4].buffer = datetime;
 	param[4].buffer_length = strlen(datetime);
-	param[5].buffer_type = MYSQL_TYPE_LONG;
+	param[5].buffer_type = MYTNT_TYPE_LONG;
 	param[5].buffer = &o_ol_cnt;
-	param[6].buffer_type = MYSQL_TYPE_LONG;
+	param[6].buffer_type = MYTNT_TYPE_LONG;
 	param[6].buffer = &o_all_local;
-	if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-	if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+	if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+	if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
 
 #ifdef DEBUG
@@ -255,17 +255,17 @@ int neword( int t_num,
 	proceed = 5;
 	/* EXEC_SQL INSERT INTO new_orders (no_o_id, no_d_id, no_w_id)
 	   VALUES (:o_id,:d_id,:w_id); */
-	mysql_stmt = stmt[t_num][4];
+	mytnt_stmt = stmt[t_num][4];
 
-	memset(param, 0, sizeof(MYSQL_BIND) * 3); /* initialize */
-	param[0].buffer_type = MYSQL_TYPE_LONG;
+	memset(param, 0, sizeof(MYTNT_BIND) * 3); /* initialize */
+	param[0].buffer_type = MYTNT_TYPE_LONG;
 	param[0].buffer = &o_id;
-	param[1].buffer_type = MYSQL_TYPE_LONG;
+	param[1].buffer_type = MYTNT_TYPE_LONG;
 	param[1].buffer = &d_id;
-	param[2].buffer_type = MYSQL_TYPE_LONG;
+	param[2].buffer_type = MYTNT_TYPE_LONG;
 	param[2].buffer = &w_id;
-	if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-	if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+	if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+	if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
 	/* sort orders to avoid DeadLock */
 	for (i = 0; i < o_ol_cnt; i++) {
@@ -299,40 +299,40 @@ int neword( int t_num,
 			INTO :i_price, :i_name, :i_data
 		        FROM item
 		        WHERE i_id = :ol_i_id;*/
-		mysql_stmt = stmt[t_num][5];
+		mytnt_stmt = stmt[t_num][5];
 
-		memset(param, 0, sizeof(MYSQL_BIND) * 1); /* initialize */
-		param[0].buffer_type = MYSQL_TYPE_LONG;
+		memset(param, 0, sizeof(MYTNT_BIND) * 1); /* initialize */
+		param[0].buffer_type = MYTNT_TYPE_LONG;
 		param[0].buffer = &ol_i_id;
-		if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-		if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+		if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+		if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
-		if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
-		memset(column, 0, sizeof(MYSQL_BIND) * 3); /* initialize */
-		column[0].buffer_type = MYSQL_TYPE_FLOAT;
+//		if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
+		memset(column, 0, sizeof(MYTNT_BIND) * 3); /* initialize */
+		column[0].buffer_type = MYTNT_TYPE_FLOAT;
 		column[0].buffer = &i_price;
-		column[1].buffer_type = MYSQL_TYPE_STRING;
+		column[1].buffer_type = MYTNT_TYPE_STRING;
 		column[1].buffer = i_name;
 		column[1].buffer_length = sizeof(i_name);
-		column[2].buffer_type = MYSQL_TYPE_STRING;
+		column[2].buffer_type = MYTNT_TYPE_STRING;
 		column[2].buffer = i_data;
 		column[2].buffer_length = sizeof(i_data);
-		if( mysql_stmt_bind_result(mysql_stmt, column) ) goto sqlerr;
-		switch( mysql_stmt_fetch(mysql_stmt) ) {
+		if( mytnt_stmt_bind_result(mytnt_stmt, column, 3) ) goto sqlerr;
+		switch( mytnt_stmt_fetch(mytnt_stmt) ) {
 		    case 0: //SUCCESS
-		    case MYSQL_DATA_TRUNCATED:
+//		    case MYSQL_DATA_TRUNCATED:
 			break;
 
-		    case MYSQL_NO_DATA: //NO MORE DATA
-			mysql_stmt_free_result(mysql_stmt);
+		    case MYTNT_NO_DATA: //NO MORE DATA
+			mytnt_stmt_free_result(mytnt_stmt);
 			goto invaliditem;
 
 		    case 1: //ERROR
 		    default:
-			mysql_stmt_free_result(mysql_stmt);
+			mytnt_stmt_free_result(mytnt_stmt);
 			goto sqlerr;
 		}
-		mysql_stmt_free_result(mysql_stmt);
+		mytnt_stmt_free_result(mytnt_stmt);
 
 
 		price[ol_num_seq[ol_number - 1]] = i_price;
@@ -352,67 +352,67 @@ int neword( int t_num,
 		             :s_dist_03, :s_dist_04, :s_dist_05, :s_dist_06,
 		             :s_dist_07, :s_dist_08, :s_dist_09, :s_dist_10
 		        FROM stock
-		        WHERE s_i_id = :ol_i_id 
+		        WHERE s_i_id = :ol_i_id
 			AND s_w_id = :ol_supply_w_id
 			FOR UPDATE;*/
-		mysql_stmt = stmt[t_num][6];
+		mytnt_stmt = stmt[t_num][6];
 
-		memset(param, 0, sizeof(MYSQL_BIND) * 2); /* initialize */
-		param[0].buffer_type = MYSQL_TYPE_LONG;
+		memset(param, 0, sizeof(MYTNT_BIND) * 2); /* initialize */
+		param[0].buffer_type = MYTNT_TYPE_LONG;
 		param[0].buffer = &ol_i_id;
-		param[1].buffer_type = MYSQL_TYPE_LONG;
+		param[1].buffer_type = MYTNT_TYPE_LONG;
 		param[1].buffer = &ol_supply_w_id;
-		if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-		if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+		if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+		if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
-		if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
-		memset(column, 0, sizeof(MYSQL_BIND) * 12); /* initialize */
-		column[0].buffer_type = MYSQL_TYPE_LONG;
+//		if( mysql_stmt_store_result(mysql_stmt) ) goto sqlerr;
+		memset(column, 0, sizeof(MYTNT_BIND) * 12); /* initialize */
+		column[0].buffer_type = MYTNT_TYPE_LONG;
 		column[0].buffer = &s_quantity;
-		column[1].buffer_type = MYSQL_TYPE_STRING;
+		column[1].buffer_type = MYTNT_TYPE_STRING;
 		column[1].buffer = s_data;
 		column[1].buffer_length = sizeof(s_data);
-		column[2].buffer_type = MYSQL_TYPE_STRING;
+		column[2].buffer_type = MYTNT_TYPE_STRING;
 		column[2].buffer = s_dist_01;
 		column[2].buffer_length = sizeof(s_dist_01);
-		column[3].buffer_type = MYSQL_TYPE_STRING;
+		column[3].buffer_type = MYTNT_TYPE_STRING;
 		column[3].buffer = s_dist_02;
 		column[3].buffer_length = sizeof(s_dist_02);
-		column[4].buffer_type = MYSQL_TYPE_STRING;
+		column[4].buffer_type = MYTNT_TYPE_STRING;
 		column[4].buffer = s_dist_03;
 		column[4].buffer_length = sizeof(s_dist_03);
-		column[5].buffer_type = MYSQL_TYPE_STRING;
+		column[5].buffer_type = MYTNT_TYPE_STRING;
 		column[5].buffer = s_dist_04;
 		column[5].buffer_length = sizeof(s_dist_04);
-		column[6].buffer_type = MYSQL_TYPE_STRING;
+		column[6].buffer_type = MYTNT_TYPE_STRING;
 		column[6].buffer = s_dist_05;
 		column[6].buffer_length = sizeof(s_dist_05);
-		column[7].buffer_type = MYSQL_TYPE_STRING;
+		column[7].buffer_type = MYTNT_TYPE_STRING;
 		column[7].buffer = s_dist_06;
 		column[7].buffer_length = sizeof(s_dist_06);
-		column[8].buffer_type = MYSQL_TYPE_STRING;
+		column[8].buffer_type = MYTNT_TYPE_STRING;
 		column[8].buffer = s_dist_07;
 		column[8].buffer_length = sizeof(s_dist_07);
-		column[9].buffer_type = MYSQL_TYPE_STRING;
+		column[9].buffer_type = MYTNT_TYPE_STRING;
 		column[9].buffer = s_dist_08;
 		column[9].buffer_length = sizeof(s_dist_08);
-		column[10].buffer_type = MYSQL_TYPE_STRING;
+		column[10].buffer_type = MYTNT_TYPE_STRING;
 		column[10].buffer = s_dist_09;
 		column[10].buffer_length = sizeof(s_dist_09);
-		column[11].buffer_type = MYSQL_TYPE_STRING;
+		column[11].buffer_type = MYTNT_TYPE_STRING;
 		column[11].buffer = s_dist_10;
 		column[11].buffer_length = sizeof(s_dist_10);
-		if( mysql_stmt_bind_result(mysql_stmt, column) ) goto sqlerr;
-		switch( mysql_stmt_fetch(mysql_stmt) ) {
+		if( mytnt_stmt_bind_result(mytnt_stmt, column, 12) ) goto sqlerr;
+		switch( mytnt_stmt_fetch(mytnt_stmt) ) {
 		    case 0: //SUCCESS
 			break;
 		    case 1: //ERROR
-		    case MYSQL_NO_DATA: //NO MORE DATA
+		    case MYTNT_NO_DATA: //NO MORE DATA
 		    default:
-			mysql_stmt_free_result(mysql_stmt);
+			mytnt_stmt_free_result(mytnt_stmt);
 			goto sqlerr;
 		}
-		mysql_stmt_free_result(mysql_stmt);
+		mytnt_stmt_free_result(mytnt_stmt);
 
 
 		pick_dist_info(ol_dist_info, d_id);	/* pick correct
@@ -437,19 +437,19 @@ int neword( int t_num,
 
 		proceed = 8;
 		/*EXEC_SQL UPDATE stock SET s_quantity = :s_quantity
-		        WHERE s_i_id = :ol_i_id 
+		        WHERE s_i_id = :ol_i_id
 			AND s_w_id = :ol_supply_w_id;*/
-		mysql_stmt = stmt[t_num][7];
+		mytnt_stmt = stmt[t_num][7];
 
-		memset(param, 0, sizeof(MYSQL_BIND) * 3); /* initialize */
-		param[0].buffer_type = MYSQL_TYPE_LONG;
+		memset(param, 0, sizeof(MYTNT_BIND) * 3); /* initialize */
+		param[0].buffer_type = MYTNT_TYPE_LONG;
 		param[0].buffer = &s_quantity;
-		param[1].buffer_type = MYSQL_TYPE_LONG;
+		param[1].buffer_type = MYTNT_TYPE_LONG;
 		param[1].buffer = &ol_i_id;
-		param[2].buffer_type = MYSQL_TYPE_LONG;
+		param[2].buffer_type = MYTNT_TYPE_LONG;
 		param[2].buffer = &ol_supply_w_id;
-		if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-		if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+		if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+		if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
 
 		ol_amount = ol_quantity * i_price * (1 + w_tax + d_tax) * (1 - c_discount);
@@ -461,37 +461,37 @@ int neword( int t_num,
 #endif
 
 		proceed = 9;
-		/*EXEC_SQL INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, 
-						 ol_number, ol_i_id, 
-						 ol_supply_w_id, ol_quantity, 
+		/*EXEC_SQL INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id,
+						 ol_number, ol_i_id,
+						 ol_supply_w_id, ol_quantity,
 						 ol_amount, ol_dist_info)
 			VALUES (:o_id, :d_id, :w_id, :ol_number, :ol_i_id,
 				:ol_supply_w_id, :ol_quantity, :ol_amount,
 				:ol_dist_info);*/
-		mysql_stmt = stmt[t_num][8];
+		mytnt_stmt = stmt[t_num][8];
 
-		memset(param, 0, sizeof(MYSQL_BIND) * 9); /* initialize */
-		param[0].buffer_type = MYSQL_TYPE_LONG;
+		memset(param, 0, sizeof(MYTNT_BIND) * 9); /* initialize */
+		param[0].buffer_type = MYTNT_TYPE_LONG;
 		param[0].buffer = &o_id;
-		param[1].buffer_type = MYSQL_TYPE_LONG;
+		param[1].buffer_type = MYTNT_TYPE_LONG;
 		param[1].buffer = &d_id;
-		param[2].buffer_type = MYSQL_TYPE_LONG;
+		param[2].buffer_type = MYTNT_TYPE_LONG;
 		param[2].buffer = &w_id;
-		param[3].buffer_type = MYSQL_TYPE_LONG;
+		param[3].buffer_type = MYTNT_TYPE_LONG;
 		param[3].buffer = &ol_number;
-		param[4].buffer_type = MYSQL_TYPE_LONG;
+		param[4].buffer_type = MYTNT_TYPE_LONG;
 		param[4].buffer = &ol_i_id;
-		param[5].buffer_type = MYSQL_TYPE_LONG;
+		param[5].buffer_type = MYTNT_TYPE_LONG;
 		param[5].buffer = &ol_supply_w_id;
-		param[6].buffer_type = MYSQL_TYPE_LONG;
+		param[6].buffer_type = MYTNT_TYPE_LONG;
 		param[6].buffer = &ol_quantity;
-		param[7].buffer_type = MYSQL_TYPE_FLOAT;
+		param[7].buffer_type = MYTNT_TYPE_FLOAT;
 		param[7].buffer = &ol_amount;
-		param[8].buffer_type = MYSQL_TYPE_STRING;
+		param[8].buffer_type = MYTNT_TYPE_STRING;
 		param[8].buffer = ol_dist_info;
 		param[8].buffer_length = strlen(ol_dist_info);
-		if( mysql_stmt_bind_param(mysql_stmt, param) ) goto sqlerr;
-		if( mysql_stmt_execute(mysql_stmt) ) goto sqlerr;
+		if( mytnt_stmt_bind_param(mytnt_stmt, param) ) goto sqlerr;
+		if( mytnt_stmt_execute(mytnt_stmt) ) goto sqlerr;
 
 
 	}			/* End Order Lines */
@@ -502,7 +502,7 @@ int neword( int t_num,
 #endif
 
 	/*EXEC_SQL COMMIT WORK;*/
-	if( mysql_commit(ctx[t_num]) ) goto sqlerr;
+//	if( mysql_commit(ctx[t_num]) ) goto sqlerr;
 	clk1 = clock_gettime(CLOCK_REALTIME, &tbuf1 );
 	if (ftrx_file) {
 		fprintf(ftrx_file,"t_num: %d finish: %lu %lu start: %lu %lu\n",t_num, tbuf1.tv_sec, tbuf1.tv_nsec,
@@ -513,17 +513,17 @@ int neword( int t_num,
 
 invaliditem:
 	/*EXEC_SQL ROLLBACK WORK;*/
-	mysql_rollback(ctx[t_num]);
+//	mysql_rollback(ctx[t_num]);
 
 	/* printf("Item number is not valid\n"); */
 	return (1); /* OK? */
 
 sqlerr:
 	fprintf(stderr,"neword %d:%d\n",t_num,proceed);
-      	error(ctx[t_num],mysql_stmt);
+      	error(ctx[t_num], mytnt_stmt);
 	/*EXEC SQL WHENEVER SQLERROR GOTO sqlerrerr;*/
 	/*EXEC_SQL ROLLBACK WORK;*/
-	mysql_rollback(ctx[t_num]);
+//	mysql_rollback(ctx[t_num]);
 sqlerrerr:
 	return (0);
 }
