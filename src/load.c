@@ -17,7 +17,6 @@
 #include <fcntl.h>
 
 #include "mytnt.h"
-#include <mysql.h>
 
 #include "spt_proc.h"
 #include "tpc.h"

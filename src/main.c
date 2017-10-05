@@ -626,7 +626,7 @@ int main( int argc, char *argv[] )
     printf(" [NG] *\n");
   }
 
-  printf("\n<TpmC>\n");
+  printf("\n<TpmC>");
   f = (float)(success[0] + late[0]) * 60.0
     / (float)((measure_time / PRINT_INTERVAL) * PRINT_INTERVAL);
   printf("                 %.3f TpmC\n",f);
