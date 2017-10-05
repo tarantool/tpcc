@@ -7,13 +7,13 @@
      `tarantool create_table.sql`
    * populate data
      - simple step
-       `tpcc_load -h127.0.0.1 -d -u root -p "" -w 1000`
-                 |hostname:port| |user| |password| |WAREHOUSES|
+       `tpcc_load -w 1000`
+                 |WAREHOUSES|
        ref. tpcc_load --help for all options
 
 3. Start benchmark
-   * `./tpcc_start -h127.0.0.1 -P3306 -uroot -w1000 -c32 -r10 -l10800`
-   * |hostname| |port| |user| |WAREHOUSES| |CONNECTIONS| |WARMUP TIME| |BENCHMARK TIME|
+   * `./tpcc_start -w1000 -c32 -r10 -l10800`
+   * |WAREHOUSES| |CONNECTIONS| |WARMUP TIME| |BENCHMARK TIME|
    * ref. tpcc_start --help for all options 
 
 Output
@@ -36,4 +36,13 @@ Where:
 * max_rt: 213.169: - The Max Response time of New Order transactions per given interval. In this case it is 213.169 sec
 * the rest: `12919|98.778, 1292|101.096, 1293|443.955, 1293|670.842` is throughput and max response time for the other kind of transactions and can be ignored
 
+Microbench
+===========================
 
+Usage:
+1. Get auth token in microbench service
+2. Create auth.conf file contains: [uri]:[token]
+3. Run the script: 
+```
+./run.sh
+```
