@@ -154,7 +154,7 @@ int main( int argc, char *argv[] )
 
   /* dummy initialize*/
   num_ware = 1;
-  num_conn = 10;
+  num_conn = 1;
   lampup_time = 10;
   measure_time = 20;
   strcpy( db_string, "tpcc" );

@@ -12,8 +12,8 @@
        ref. tpcc_load --help for all options
 
 3. Start benchmark
-   * `./tpcc_start -w1000 -c32 -r10 -l10800`
-   * |WAREHOUSES| |CONNECTIONS| |WARMUP TIME| |BENCHMARK TIME|
+   * `./tpcc_start -w1000 -r10 -l10800`
+   * |WAREHOUSES| |WARMUP TIME| |BENCHMARK TIME|
    * ref. tpcc_start --help for all options 
 
 Output
