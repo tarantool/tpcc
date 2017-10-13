@@ -29,10 +29,10 @@ sleep 2; TNT_PID=$!
 
 # Run SysBench, Print results to screen, Save results to result.txt
 apt-get install -y -f gdb
-./tpcc_load -w 5
+./tpcc_load -w 1000
 echo "test_name:result[TpmC]"
 echo -n "tpcc:"
-./tpcc_start -w5 -r10 -l300  | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
+./tpcc_start -w1000 -r10 -l10800  | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
 
 # Clear
 kill $TNT_PID ; rm -f *.xlog ; rm -f *.snap
