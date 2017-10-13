@@ -4,9 +4,9 @@
 
 
 
-LIBS=		`mysql_config --libs_r` -lrt
+LIBS=		-lrt -lpthread -lm -ltarantool -lmsgpackc
 
-INC=		-I. `mysql_config --include`
+INC=		-I.
 
 #DEFS=		-DDEBUG
 
@@ -24,10 +24,10 @@ OBJS=		main.o spt_proc.o driver.o support.o sequence.o rthist.o sb_percentile.o 
 all: ../tpcc_load ../tpcc_start
 
 ../tpcc_load : load.o support.o  mytnt.o
-	$(CC) load.o support.o mytnt.o $(LIBS) -o ../tpcc_load -ltarantool -lmsgpackc
+	$(CC) load.o support.o mytnt.o $(LIBS) -o ../tpcc_load
 
 ../tpcc_start : $(OBJS)
-	$(CC) $(OBJS) $(LIBS) -g -o ../tpcc_start -ltarantool -lmsgpackc
+	$(CC) $(OBJS) $(LIBS) -g -o ../tpcc_start
 
 clean :
 	rm -f *.o

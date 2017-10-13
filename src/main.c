@@ -12,7 +12,6 @@
 #include <pthread.h>
 #include <fcntl.h>
 
-#include <mysql.h>
 #include "mytnt.h"
 
 #include "tpc.h"
