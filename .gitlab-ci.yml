@@ -1,0 +1,20 @@
+stages:
+ - benchmark
+ - publish
+
+tpcc-benchmark:
+  image: ubuntu
+  stage: benchmark
+  artifacts:
+    paths:
+      - result.txt
+  script:
+    - ./run-tpcc.sh
+
+tpcc-publish:
+  stage: publish
+  script:
+   - cat result.txt
+#   - python export.py auth.conf result.txt
+  only:
+   - master
