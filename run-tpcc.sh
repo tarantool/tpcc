@@ -32,7 +32,7 @@ apt-get install -y -f gdb
 ./tpcc_load -w 10
 echo "test_name:result[TpmC]"
 echo -n "tpcc:"
-./tpcc_start -w10 -r10 -l1800  | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
+./tpcc_start -w10 -r10 -l1200  | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
 
 # Clear
 kill $TNT_PID ; rm -f *.xlog ; rm -f *.snap
