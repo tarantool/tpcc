@@ -3,4 +3,4 @@ box.cfg {
     memtx_memory = 2000000000,
 }
 
-box.schema.user.grant('guest', 'read,write', 'universe')
+--box.schema.user.grant('guest', 'read,write', 'universe')
