@@ -9,7 +9,7 @@ tpcc-benchmark:
     paths:
       - result.txt
   script:
-    - ./run-tpcc.sh
+    - PATH_TO_TPCC="/builds/iproha94/tpcc-tarantool" ./run-tpcc.sh
 
 tpcc-publish:
   stage: publish

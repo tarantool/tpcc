@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-PATH_TO_TPCC="/builds/iproha94/tpcc-tarantool"
-
 # Build Tarantool
 cd /tarantool
 git reset --hard 1b37e331813608b12fc8e13f6810c95c9873c5d9
@@ -19,7 +17,7 @@ cd ${PATH_TO_TPCC}/src; make
 # Run Tarantool
 cd ${PATH_TO_TPCC}
 tarantoolctl start start-server.lua
-echo "waiting load snapshot to tarantool... 90s"; sleep 90
+echo "waiting load snapshot to tarantool... 180s"; sleep 180
 cat /usr/local/var/log/tarantool/start-server.log
 
 # Run SysBench, Print results to screen, Save results to result.txt
