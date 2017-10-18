@@ -1,9 +1,6 @@
 # Version: 0.0.1
 FROM ubuntu
-MAINTAINER Ilya Petukhov <iproha94@tarantool.com>
-
-RUN mkdir snapshot
-COPY snapshot/ snapshot/
+MAINTAINER Ilya Petukhov <iproha94@tarantool.org>
 
 RUN apt-get update
 
@@ -16,3 +13,17 @@ RUN apt-get install -y -f build-essential cmake coreutils sed libreadline-dev \
 
 RUN git clone https://github.com/msgpack/msgpack-c.git
 RUN cd msgpack-c ; cmake . ; make ; make install ; cd ..
+
+RUN git clone --recursive https://github.com/tarantool/tarantool.git -b 1.8 tarantool
+RUN cd tarantool; cmake . -DENABLE_DIST=ON; make; make install; cd ..;
+
+RUN git clone --recursive https://github.com/tarantool/tarantool-c tarantool-c
+RUN cd tarantool-c/third_party/msgpuck/; cmake . ; make; make install; cd ../../..;
+RUN cd tarantool-c; cmake . ; make; make install; cd ..;
+
+
+RUN mkdir -p /usr/local/var/lib/tarantool/start-server/
+COPY snapshot/ /usr/local/var/lib/tarantool/start-server/
+COPY start-server.lua /usr/local/etc/tarantool/instances.available/
+
+RUN mkdir -p /usr/local/var/run/tarantool

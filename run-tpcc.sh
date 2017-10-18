@@ -1,36 +1,32 @@
 #!/usr/bin/env bash
 
-#apt-get update && apt-get install -y -f ssh vim git dh-autoreconf \
-#      pkg-config build-essential cmake coreutils sed libreadline-dev \
-#      libncurses5-dev libyaml-dev libssl-dev libcurl4-openssl-dev \
-#      libunwind-dev python python-pip python-setuptools python-dev \
-#      python-msgpack python-yaml python-argparse python-six python-gevent
-
-# Build msgpack
-#git clone https://github.com/msgpack/msgpack-c.git
-#cd msgpack-c ; cmake . ; make ; make install ; cd ..
-
 # Build Tarantool
-git clone --recursive https://github.com/tarantool/tarantool.git -b 1.8 tarantool
-cd tarantool; git reset --hard 1b37e331813608b12fc8e13f6810c95c9873c5d9 s; cmake . ; make; make install; cd ..;
+cd ../tarantool;
+git reset --hard 1b37e331813608b12fc8e13f6810c95c9873c5d9;
+cmake . -DENABLE_DIST=ON; make; make install;
+cd ../tpcc-tarantool;
 
 # Build tarantool-c
-git clone --recursive https://github.com/tarantool/tarantool-c tarantool-c
-cd tarantool-c/third_party/msgpuck/; cmake . ; make; make install; cd ../../..;
-cd tarantool-c; cmake . ; make; make install; cd ..;
+cd ../tarantool-c;
+git pull;
+cd third_party/msgpuck/; cmake . ; make; make install; cd ../..;
+cmake . ; make; make install;
+cd ../tpcc-tarantool
 
 # Build tpcc
 cd src ; make ; cd ..
 
 # Run Tarantool
-cd snapshot; tarantool ../start-server.lua &
-sleep 60; cd .. ; TNT_PID=$!
+tarantoolctl start start-server.lua ;
+echo "waiting load snapshot to tarantool... 90s"; sleep 90;
+cat /usr/local/var/log/tarantool/start-server.log
 
 # Run SysBench, Print results to screen, Save results to result.txt
 apt-get install -y -f gdb
-#./tpcc_load -w 15
+./tpcc_start -w15 -r10 -l60  | tee temp-result.txt
+
 echo "test_name:result[TpmC]"
 echo -n "tpcc:"
-./tpcc_start -w15 -r10 -l600  | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
+cat temp-result.txt | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
 
-kill $TNT_PID
+tarantoolctl stop start-server.lua

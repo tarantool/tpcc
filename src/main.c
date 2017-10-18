@@ -125,7 +125,7 @@ int main( int argc, char *argv[] )
   timer_t timer;
   struct itimerval itval;
   struct sigaction  sigact;
-  int port= 3306;
+  int port= 3301;
   int fd, seed;
 
   printf("***************************************\n");
