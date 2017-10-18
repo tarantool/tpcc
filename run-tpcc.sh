@@ -23,7 +23,7 @@ cat /usr/local/var/log/tarantool/start-server.log
 # Run SysBench, Print results to screen, Save results to result.txt
 apt-get install -y -f gdb
 cd ${PATH_TO_TPCC}
-./tpcc_start -w15 -r10 -l1800  | tee temp-result.txt
+./tpcc_start -w15 -r10 -l1200  | tee temp-result.txt
 cat temp-result.txt | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
 
 tarantoolctl stop start-server.lua
