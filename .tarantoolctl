@@ -4,6 +4,7 @@ default_cfg = {
     memtx_dir  = "/usr/local/var/lib/tarantool", -- /usr/local/var/lib/tarantool/${INSTANCE}
     vinyl_dir  = "/usr/local/var/lib/tarantool", -- /usr/local/var/lib/tarantool/${INSTANCE}
     log        = "/usr/local/var/log/tarantool", -- /usr/local/var/log/tarantool/${INSTANCE}.log
+    username   = "root",
 }
 
 -- instances.available - all available instances
