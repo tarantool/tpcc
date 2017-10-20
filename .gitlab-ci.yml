@@ -13,6 +13,7 @@ tpcc-benchmark:
     - PATH_TO_TPCC="/builds/iproha94/tpcc-tarantool" ./run-from-docker.sh
 
 tpcc-publish:
+  image: registry.gitlab.com/iproha94/tpcc-tarantool
   stage: publish
   script:
    - cat result.txt
