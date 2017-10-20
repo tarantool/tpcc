@@ -1,6 +1,5 @@
 tpcc_load
 tpcc_start
-auth.conf
 result.txt
 tarantool
 snapshot/
