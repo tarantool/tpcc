@@ -31,5 +31,5 @@ cat /usr/local/var/log/tarantool/tpcc-server.log
 tarantool -v | grep -e "Tarantool" |  grep -oP '\s\K\S*' | tee version.txt
 
 apt-get install -y -f gdb
-./tpcc_start -w15 -r10 -l1200 -i60 | tee temp-result.txt
+./tpcc_start -w15 -r10 -l2400 -i60 | tee temp-result.txt
 cat temp-result.txt | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
