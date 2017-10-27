@@ -36,5 +36,5 @@ echo "---------------------------------------------"
 if [ ! -n "${TIME}" ]; then TIME=2400; fi
 
 apt-get install -y -f gdb
-./tpcc_start -w15 -r10 -l2400 -i60 | tee temp-result.txt
+./tpcc_start -w15 -r10 -l${TIME} -i60 | tee temp-result.txt
 cat temp-result.txt | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
