@@ -29,7 +29,11 @@ done
 cat /usr/local/var/log/tarantool/tpcc-server.log
 
 # Run SysBench, Print results to screen, Save results to result.txt
+echo "---------------------------------------------"
 tarantool -v | grep -e "Tarantool" |  grep -oP '\s\K\S*' | tee version.txt
+echo "---------------------------------------------"
+
+if [ ! -n "${TIME}" ]; then TIME=2400; fi
 
 apt-get install -y -f gdb
 ./tpcc_start -w15 -r10 -l2400 -i60 | tee temp-result.txt
