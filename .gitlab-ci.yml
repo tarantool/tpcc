@@ -10,7 +10,9 @@ tpcc-benchmark:
       - result.txt
       - version.txt
   script:
-    - PATH_TO_TPCC="/builds/iproha94/tpcc-tarantool" ./run-from-docker.sh
+    - ./run-from-docker.sh
+  only:
+    - triggers
 
 tpcc-publish:
   image: registry.gitlab.com/iproha94/tpcc-tarantool
@@ -20,4 +22,4 @@ tpcc-publish:
    - cat version.txt
    - python export.py auth.conf result.txt version.txt
   only:
-   - master
+   - triggers

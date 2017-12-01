@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 
+if [ ! -n "${PATH_TO_TPCC}" ]; then PATH_TO_TPCC=$(pwd); fi
+
 # Build Tarantool
 cd /tarantool
 git pull
-if [ -n "${BRANCH}" ]; then git checkout ${BRANCH}; fi
-branch_name="$(git symbolic-ref HEAD 2>/dev/null)"
-branch_name=${branch_name##refs/heads/}
+if [ ! -n "${BRANCH}" ]; then BRANCH="1.8"; fi
+git checkout ${BRANCH};
 cmake . -DENABLE_DIST=ON; make; make install
+
+# define tarantool version
+cd ${PATH_TO_TPCC}
+TAR_VER=$(tarantool -v | grep -e "Tarantool" |  grep -oP '\s\K\S*')
+echo ${TAR_VER} | tee version.txt
 
 # Build tarantool-c
 cd /tarantool-c
@@ -19,25 +25,9 @@ cd ${PATH_TO_TPCC}/src; make
 
 # Run Tarantool
 cd ${PATH_TO_TPCC}
-tarantool tpcc-server.lua
+./run-tarantool-server.sh
 
-STATUS="$(echo box.info.status | tarantoolctl connect /usr/local/var/run/tarantool/tpcc-server.control | grep -e "- running")"
-while [ ${#STATUS} -eq "0" ]; do
-    echo "waiting load snapshot to tarantool..."
-    sleep 5
-    STATUS="$(echo box.info.status | tarantoolctl connect /usr/local/var/run/tarantool/tpcc-server.control | grep -e "- running")"
-done
-
-cat /usr/local/var/log/tarantool/tpcc-server.log
-
-# Run SysBench, Print results to screen, Save results to result.txt
-echo "---------------------------------------------"
-TAR_VER=$(tarantool -v | grep -e "Tarantool" |  grep -oP '\s\K\S*')
-echo $TAR_VER"["$branch_name"]" | tee version.txt
-echo "---------------------------------------------"
-
-if [ ! -n "${TIME}" ]; then TIME=2400; fi
-
+# Run tpcc
 apt-get install -y -f gdb
-./tpcc_start -w15 -r10 -l${TIME} -i60 | tee temp-result.txt
-cat temp-result.txt | grep -e '<TpmC>' | grep -oP '\K[0-9.]*' | tee result.txt
+cd ${PATH_TO_TPCC}
+TIME=${TIME} ./run-test.sh
