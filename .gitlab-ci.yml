@@ -3,23 +3,25 @@ stages:
  - publish
 
 tpcc-benchmark:
-  image: registry.gitlab.com/iproha94/tpcc-tarantool
+  image: registry.gitlab.com/iproha94/tpcc-tarantool/benchmarking
   stage: benchmark
   artifacts:
     paths:
-      - result.txt
-      - version.txt
+      - ./benchmarking/result.txt
+      - ./benchmarking/version.txt
   script:
-    - ./run-from-docker.sh
+    - ./benchmarking/run-from-docker.sh
   only:
     - triggers
+    - schedules
 
-tpcc-publish:
-  image: registry.gitlab.com/iproha94/tpcc-tarantool
-  stage: publish
-  script:
-   - cat result.txt
-   - cat version.txt
-   - python export.py auth.conf result.txt version.txt
-  only:
-   - triggers
+#tpcc-publish:
+#  image: registry.gitlab.com/iproha94/tpcc-tarantool/publication
+#  stage: publish
+#  script:
+#    - cat ./benchmarking/result.txt
+#    - cat ./benchmarking/version.txt
+#    - ./publication/main.py ./benchmarking/result.txt ./benchmarking/version.txt
+#  only:
+#    - triggers
+#    - schedules
