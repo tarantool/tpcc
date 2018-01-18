@@ -95,14 +95,13 @@ def main():
     # push bench data to microb-server
     if "GRAFANA_WEB_HOST" in os.environ and \
         "GRAFANA_WEB_PORT" in os.environ:
-        for value in values:
-            push_to_grafana(
-                os.environ['GRAFANA_WEB_HOST'],
-                os.environ['GRAFANA_WEB_PORT'],
-                "tpcc",
-                value,
-                version
-            )
+        push_to_grafana(
+            os.environ['GRAFANA_WEB_HOST'],
+            os.environ['GRAFANA_WEB_PORT'],
+            "tpcc",
+            value,
+            version
+        )
     else:
         print("GRAFANA params not specified")
 
