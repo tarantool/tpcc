@@ -1,5 +1,6 @@
 tpcc_load
 tpcc_start
 result.txt
+version.txt
 tarantool
 snapshot/

@@ -15,13 +15,13 @@ tpcc-benchmark:
     - triggers
     - schedules
 
-#tpcc-publish:
-#  image: registry.gitlab.com/iproha94/tpcc-tarantool/publication
-#  stage: publish
-#  script:
-#    - cat ./benchmarking/result.txt
-#    - cat ./benchmarking/version.txt
-#    - ./publication/main.py ./benchmarking/result.txt ./benchmarking/version.txt
-#  only:
-#    - triggers
-#    - schedules
+tpcc-publish:
+  image: registry.gitlab.com/iproha94/tpcc-tarantool/publication
+  stage: publish
+  script:
+    - cat ./benchmarking/result.txt
+    - cat ./benchmarking/version.txt
+    - ./publication/main.py ./benchmarking/result.txt ./benchmarking/version.txt
+  only:
+    - triggers
+    - schedules
