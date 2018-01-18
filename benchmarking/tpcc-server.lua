@@ -4,7 +4,7 @@ console.listen("/tmp/tpcc-server.sock")
 box.cfg {
     pid_file   = "./tpcc-server.pid",
     log        = "./tpcc-server.log",
-    memtx_dir  = "/tmp/tpcc",
+    memtx_dir  = "/opt/tpcc/snapshot/",
     listen = 3301,
     memtx_memory = 2000000000,
     background = true,

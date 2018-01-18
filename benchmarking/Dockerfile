@@ -38,8 +38,5 @@ COPY . /opt/tpcc
 WORKDIR /opt/tpcc/src
 RUN make
 
-RUN mkdir -p /tmp/tpcc/
-COPY snapshot/ /tmp/tpcc/
-
 WORKDIR /opt/tpcc
 CMD ["./benchmarking/run-from-docker.sh"]
