@@ -30,5 +30,6 @@ numactl --membind=0 --cpunodebind=0 --physcpubind=2 ./run-tarantool-server.sh
 
 # Run tpcc
 cd ${PATH_TO_BENCHMARKING}
+apt-get install -y -f gdb
 echo 3 > /proc/sys/vm/drop_caches
 numactl --membind=0 --cpunodebind=0 --physcpubind=3 ./run-test.sh
