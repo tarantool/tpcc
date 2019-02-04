@@ -140,12 +140,14 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 	stmt->mytnt->error_no = reply->code;
 
 	if (stmt->mytnt->error_info) {
-		free(stmt->mytnt->error_info);
+		//free(stmt->mytnt->error_info);
 	}
 
 	if (reply->error) {
-		stmt->mytnt->error_info = (char *) malloc(100 * sizeof(char));
+		stmt->mytnt->error_info = (char *) malloc(1024 * sizeof(char));
 		strcpy(stmt->mytnt->error_info, reply->error);
+		tnt_reply_free(reply);
+		return stmt->mytnt->error_no;
 	}
 
 	stmt->result = (msgpack_object *) malloc(sizeof(msgpack_object));
