@@ -10,7 +10,7 @@ INC=		-I.
 
 #DEFS=		-DDEBUG
 
-CFLAGS=		-w -O3 -g
+CFLAGS=		-w -O3 -g -std=gnu99
 
 TRANSACTIONS=	neword.o payment.o ordstat.o delivery.o slev.o
 OBJS=		main.o spt_proc.o driver.o support.o sequence.o rthist.o sb_percentile.o mytnt.o $(TRANSACTIONS)
