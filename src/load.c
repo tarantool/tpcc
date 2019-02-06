@@ -388,7 +388,7 @@ retry:
 		param[4].buffer = i_data;
 		param[4].buffer_length = strlen(i_data);
 		if( mytnt_stmt_bind_param(stmt[0], param) ) goto sqlerr;
-		if( try_stmt_execute(stmt[0]) ) goto retry;
+		if( try_stmt_execute(stmt[0]) ) goto sqlerr;
 
 #if 0
 		printf("done executing sql\n");
@@ -493,7 +493,7 @@ retry:
 		param[8].buffer_type = MYTNT_TYPE_FLOAT;
 		param[8].buffer = &w_ytd;
 		if( mytnt_stmt_bind_param(stmt[1], param) ) goto sqlerr;
-		if( try_stmt_execute(stmt[1]) ) goto retry;
+		if( try_stmt_execute(stmt[1]) ) goto sqlerr;
 
 		/** Make Rows associated with Warehouse **/
 		if( Stock(w_id) ) goto retry;
@@ -506,7 +506,7 @@ retry:
 
 	return;
 sqlerr:
-	Error(0);
+	Error(stmt[1]);
 }
 
 ///*
@@ -711,7 +711,7 @@ retry:
 out:
 	return error;
 sqlerr:
-    Error(0);
+    Error(stmt[2]);
 }
 
 ///*
@@ -805,7 +805,7 @@ retry:
 out:
 	return error;
 sqlerr:
-	Error(0);
+	Error(stmt[3]);
 }
 
 ///*
@@ -949,8 +949,8 @@ retry:
 		param[17].buffer_type = MYTNT_TYPE_STRING;
 		param[17].buffer = c_data;
 		param[17].buffer_length = strlen(c_data);
-		if( mytnt_stmt_bind_param(stmt[4], param) ) goto sqlerr;
-		if( try_stmt_execute(stmt[4]) ) goto retry;
+		if( mytnt_stmt_bind_param(stmt[4], param) ) goto sqlerr4;
+		if( try_stmt_execute(stmt[4]) ) goto sqlerr4;
 
 		h_amount = 10.0;
 
@@ -982,7 +982,7 @@ retry:
 		param[7].buffer = h_data;
 		param[7].buffer_length = strlen(h_data);
 		if( mytnt_stmt_bind_param(stmt[5], param) ) goto sqlerr;
-		if( try_stmt_execute(stmt[5]) ) goto retry;
+		if( try_stmt_execute(stmt[5]) ) goto sqlerr;
 
 		if (option_debug)
 			printf("CID = %ld, LST = %s, P# = %s\n",
@@ -999,8 +999,11 @@ retry:
 	printf("Customer Done.\n");
 
 	return;
+sqlerr4:
+	Error(stmt[4]);
+	return;
 sqlerr:
-	Error(0);
+	Error(stmt[5]);
 }
 
 ///*
@@ -1074,7 +1077,7 @@ retry:
 		    param[5].buffer_type = MYTNT_TYPE_LONG;
 		    param[5].buffer = &o_ol_cnt;
 		    if( mytnt_stmt_bind_param(stmt[6], param) ) goto sqlerr;
-		    if( try_stmt_execute(stmt[6]) ) goto retry;
+		    if( try_stmt_execute(stmt[6]) ) goto sqlerr;
 
 		    /*EXEC SQL INSERT INTO
 			                new_orders
@@ -1088,7 +1091,7 @@ retry:
 		    param[2].buffer_type = MYTNT_TYPE_LONG;
 		    param[2].buffer = &o_w_id;
 		    if( mytnt_stmt_bind_param(stmt[7], param) ) goto sqlerr;
-		    if( try_stmt_execute(stmt[7]) ) goto retry;
+		    if( try_stmt_execute(stmt[7]) ) goto sqlerr;
 
 		} else {
 		    /*EXEC SQL INSERT INTO
@@ -1114,7 +1117,7 @@ retry:
 		    param[6].buffer_type = MYTNT_TYPE_LONG;
 		    param[6].buffer = &o_ol_cnt;
 		    if( mytnt_stmt_bind_param(stmt[8], param) ) goto sqlerr;
-		    if( try_stmt_execute(stmt[8]) ) goto retry;
+		    if( try_stmt_execute(stmt[8]) ) goto sqlerr;
 
 		}
 
@@ -1162,7 +1165,7 @@ retry:
 			    param[8].buffer = ol_dist_info;
 			    param[8].buffer_length = strlen(ol_dist_info);
 			    if( mytnt_stmt_bind_param(stmt[9], param) ) goto sqlerr;
-			    if( try_stmt_execute(stmt[9]) ) goto retry;
+			    if( try_stmt_execute(stmt[9]) ) goto sqlerr;
 
 			} else {
 			    /*EXEC SQL INSERT INTO
@@ -1196,7 +1199,7 @@ retry:
 			    param[9].buffer = ol_dist_info;
 			    param[9].buffer_length = strlen(ol_dist_info);
 			    if( mytnt_stmt_bind_param(stmt[10], param) ) goto sqlerr;
-			    if( try_stmt_execute(stmt[10]) ) goto retry;
+			    if( try_stmt_execute(stmt[10]) ) goto sqlerr;
 			}
 
 			if (option_debug)
@@ -1252,7 +1255,7 @@ void
 Error(mytnt_stmt)
         MYTNT_STMT   *mytnt_stmt;
 {
-	printf("----> error\n");
+	printf("----> error %s\n", mytnt_stmt->query);
 //	if(mysql_stmt) {
 //	printf("\n%d, %s, %s", mysql_stmt_errno(mysql_stmt),
 //	       mysql_stmt_sqlstate(mysql_stmt), mysql_stmt_error(mysql_stmt) );
