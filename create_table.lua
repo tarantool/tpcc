@@ -6,6 +6,7 @@ box.cfg{
     listen = 3301,
     background = true,
     checkpoint_interval = 0,
+    listen = 3301;
     vinyl_memory =     512 * 1024 * 1024;
     vinyl_cache = 2 * 1024 * 1024 * 1024;
 }
