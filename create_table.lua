@@ -1,10 +1,16 @@
+require('console').listen('unix/:./tarantool.sock')
+
 box.cfg{
-    wal_mode = 'none',
-    listen = 3301;
+    pid_file   = "./tarantool-server.pid",
+    log        = "./tarantool-server.log",
+    listen = 3301,
+    background = true,
+    checkpoint_interval = 0,
     vinyl_memory =     512 * 1024 * 1024;
     vinyl_cache = 2 * 1024 * 1024 * 1024;
 }
 
+box.sql.execute("PRAGMA sql_default_engine='vinyl'")
 box.sql.execute("drop table if exists warehouse;")
 box.sql.execute("create table warehouse ( \
 w_id int not null, \
@@ -149,5 +155,4 @@ box.sql.execute("CREATE INDEX fkey_stock_2 ON stock (s_i_id);")
 box.sql.execute("CREATE INDEX fkey_order_line_2 ON order_line (ol_supply_w_id,ol_i_id);")
 
 box.snapshot()
-box.schema.user.grant('guest', 'read,write,execute', 'universe')
-box.schema.user.grant('guest', 'create', 'space')
+box.schema.user.grant('guest', 'super')
