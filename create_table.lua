@@ -9,10 +9,10 @@ w_name varchar(10), \
 w_street_1 varchar(20), \
 w_street_2 varchar(20), \
 w_city varchar(20), \
-w_state char(2), \
-w_zip char(9), \
-w_tax decimal(4,2), \
-w_ytd decimal(12,2), \
+w_state varchar(2), \
+w_zip varchar(9), \
+w_tax varchar(7), \
+w_ytd varchar(15), \
 primary key (w_id) )")
 
 box.sql.execute("drop table if exists district;")
@@ -23,10 +23,10 @@ d_name varchar(10), \
 d_street_1 varchar(20), \
 d_street_2 varchar(20), \
 d_city varchar(20), \
-d_state char(2), \
-d_zip char(9), \
-d_tax decimal(4,2), \
-d_ytd decimal(12,2), \
+d_state varchar(2), \
+d_zip varchar(9), \
+d_tax varchar(7), \
+d_ytd varchar(15), \
 d_next_o_id int, \
 primary key (d_w_id, d_id), \
 FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id) );")
@@ -37,20 +37,20 @@ c_id int not null, \
 c_d_id int not null, \
 c_w_id int not null, \
 c_first varchar(16), \
-c_middle char(2), \
+c_middle varchar(2), \
 c_last varchar(16), \
 c_street_1 varchar(20), \
 c_street_2 varchar(20), \
 c_city varchar(20), \
-c_state char(2), \
-c_zip char(9), \
-c_phone char(16), \
+c_state varchar(2), \
+c_zip varchar(9), \
+c_phone varchar(16), \
 c_since varchar(100), \
-c_credit char(2), \
+c_credit varchar(2), \
 c_credit_lim int, \
-c_discount decimal(4,2), \
-c_balance decimal(12,2), \
-c_ytd_payment decimal(12,2), \
+c_discount varchar(7), \
+c_balance varchar(15), \
+c_ytd_payment varchar(15), \
 c_payment_cnt int, \
 c_delivery_cnt int, \
 c_data text, \
@@ -66,7 +66,7 @@ h_c_w_id int, \
 h_d_id int, \
 h_w_id int, \
 h_date varchar(100), \
-h_amount decimal(6,2), \
+h_amount varchar(9), \
 h_data varchar(24), \
 FOREIGN KEY(h_c_w_id,h_c_d_id,h_c_id) REFERENCES customer(c_w_id,c_d_id,c_id), \
 FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id) );")
@@ -97,7 +97,7 @@ box.sql.execute("create table item ( \
 i_id int not null, \
 i_im_id int, \
 i_name varchar(24), \
-i_price decimal(5,2), \
+i_price varchar(8), \
 i_data varchar(50), \
 PRIMARY KEY(i_id) );")
 
@@ -106,17 +106,17 @@ box.sql.execute("create table stock ( \
 s_i_id int not null, \
 s_w_id int not null, \
 s_quantity int, \
-s_dist_01 char(24), \
-s_dist_02 char(24), \
-s_dist_03 char(24), \
-s_dist_04 char(24), \
-s_dist_05 char(24), \
-s_dist_06 char(24), \
-s_dist_07 char(24), \
-s_dist_08 char(24), \
-s_dist_09 char(24), \
-s_dist_10 char(24), \
-s_ytd decimal(8,0), \
+s_dist_01 varchar(24), \
+s_dist_02 varchar(24), \
+s_dist_03 varchar(24), \
+s_dist_04 varchar(24), \
+s_dist_05 varchar(24), \
+s_dist_06 varchar(24), \
+s_dist_07 varchar(24), \
+s_dist_08 varchar(24), \
+s_dist_09 varchar(24), \
+s_dist_10 varchar(24), \
+s_ytd varchar(9), \
 s_order_cnt int, \
 s_remote_cnt int, \
 s_data varchar(50), \
@@ -134,8 +134,8 @@ ol_i_id int, \
 ol_supply_w_id int, \
 ol_delivery_d varchar(100), \
 ol_quantity int, \
-ol_amount decimal(6,2), \
-ol_dist_info char(24), \
+ol_amount varchar(9), \
+ol_dist_info varchar(24), \
 PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number), \
 FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id), \
 FOREIGN KEY(ol_supply_w_id,ol_i_id) REFERENCES stock(s_w_id,s_i_id) );")
