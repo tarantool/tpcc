@@ -144,7 +144,7 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 	}
 
 	if (reply->error) {
-		stmt->mytnt->error_info = (char *) malloc(100 * sizeof(char));
+		stmt->mytnt->error_info = (char *) malloc(1024 * sizeof(char));
 		strcpy(stmt->mytnt->error_info, reply->error);
 	}
 
