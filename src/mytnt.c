@@ -141,6 +141,7 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 
 	if (stmt->mytnt->error_info) {
 		free(stmt->mytnt->error_info);
+		stmt->mytnt->error_info = NULL;
 	}
 
 	if (reply->error) {
