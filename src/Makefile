@@ -2,9 +2,7 @@
 # "make all" to build necessary executables.
 #
 
-
-
-LIBS=		-lrt -lpthread -lm -ltarantool -lmsgpackc
+LIBS=		-lrt -lpthread -lm -ltarantool -lmsgpuck -lmsgpack
 
 INC=		-I.
 
