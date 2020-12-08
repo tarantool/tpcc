@@ -43,6 +43,7 @@ int             option_debug = 0;	/* 1 if generating debug output    */
 int             is_local = 1;           /* "1" mean local */
 
 #define DB_STRING_MAX 51
+#define MAX_LOAD_RETRIES 10
 
 #include "parse_port.h"
 
@@ -54,6 +55,31 @@ try_stmt_execute(MYTNT_STMT *mytnt_stmt)
         printf("\n%d, %s\n", ret, mytnt_error(mytnt_stmt->mytnt) );
     }
     return ret;
+}
+
+void
+print_bind(const char *name, int stmt_len, MYTNT_BIND bind[])
+{
+	if (!option_debug)
+		return;
+
+	for (int i = 0; i <= stmt_len; i++) {
+		MYTNT_BIND b = bind[i];
+		switch(bind[i].buffer_type) {
+			case MYTNT_TYPE_LONG:
+				printf("[%s:%d] l %d\n", name, i, *((int *) b.buffer));
+				break;
+			case MYTNT_TYPE_STRING:
+				printf("[%s:%d] s %s\n", name, i, (char *) b.buffer);
+				break;
+			case MYTNT_TYPE_FLOAT:
+				printf("[%s:%d] f %f\n", name, i, *((float *) b.buffer));
+				break;
+			default:
+				printf("[%s:%d] Unhandled type: %d", name, i, b.buffer_type);
+				Error(0);
+		}
+	}
 }
 
 /*
@@ -221,8 +247,8 @@ main(argc, argv)
 			       "INSERT INTO warehouse values(?,?,?,?,?,?,?,?,?)",
 			       47) ) goto Error_SqlCall_close;
 	if( mytnt_stmt_prepare(stmt[2],
-			       "INSERT INTO stock values(?,?,?,?,?,?,?,?,?,?,?,?,?,0,0,0,?)",
-			       59) ) goto Error_SqlCall_close;
+			       "INSERT INTO stock values(?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,0,0,?)",
+			       62) ) goto Error_SqlCall_close;
 	if( mytnt_stmt_prepare(stmt[3],
 			       "INSERT INTO district values(?,?,?,?,?,?,?,?,?,?,?)",
 			       50) ) goto Error_SqlCall_close;
@@ -256,9 +282,13 @@ main(argc, argv)
 
 	if(particle_flg==0){
 	    LoadItems();
+		printf("Loaded items OK\n");
 	    LoadWare();
+		printf("Loaded ware OK\n");
 	    LoadCust();
+		printf("Loaded cust OK\n");
 	    LoadOrd();
+		printf("Loaded ord OK\n");
 	}else if(particle_flg==1){
 	    switch(part_no){
 		case 1:
@@ -319,6 +349,7 @@ LoadItems()
 	int             pos;
 	int             i;
     int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[5];
 
@@ -335,9 +366,14 @@ LoadItems()
 		orig[pos] = 1;
 	}
 retry:
-    if (retried)
-        printf("Retrying ...\n");
-    retried = 1;
+	if (retried) {
+		printf("Retrying ...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load items %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	for (i_id = 1; i_id <= MAXITEMS; i_id++) {
 
 		/* Generate Item Data */
@@ -435,6 +471,7 @@ LoadWare()
 
 	int             tmp;
     int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[9];
 
@@ -443,9 +480,14 @@ LoadWare()
 	printf("Loading Warehouse \n");
     w_id = min_ware;
 retry:
-    if (retried)
-        printf("Retrying ....\n");
-    retried = 1;
+	if (retried) {
+		printf("Retrying ...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load ware %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	for (; w_id <= max_ware; w_id++) {
 
 		/* Generate Warehouse Data */
@@ -492,6 +534,9 @@ retry:
 		param[7].buffer = &w_tax;
 		param[8].buffer_type = MYTNT_TYPE_FLOAT;
 		param[8].buffer = &w_ytd;
+
+		print_bind("ware", 8, param);
+
 		if( mytnt_stmt_bind_param(stmt[1], param) ) goto sqlerr;
 		if( try_stmt_execute(stmt[1]) ) goto retry;
 
@@ -590,6 +635,9 @@ Stock(w_id)
 	char            s_dist_08[25];
 	char            s_dist_09[25];
 	char            s_dist_10[25];
+	char            s_ytd[25];
+	int             s_order_cnt;
+	int             s_remote_cnt;
 	char            s_data[51];
 
 	int             sdatasiz;
@@ -597,6 +645,8 @@ Stock(w_id)
 	int             pos;
 	int             i;
     int             error;
+    int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[14];
 
@@ -614,10 +664,20 @@ Stock(w_id)
 	}
 
 retry:
+	if (retried) {
+		printf("Retrying stock...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load stock %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	for (s_i_id = 1; s_i_id <= MAXITEMS; s_i_id++) {
 
 		/* Generate Stock Data */
 		s_quantity = RandomNumber(10L, 100L);
+		s_order_cnt = RandomNumber(10L, 100L);
+		s_remote_cnt = RandomNumber(10L, 100L);
 
 		s_dist_01[ MakeAlphaString(24, 24, s_dist_01) ] = 0;
 		s_dist_02[ MakeAlphaString(24, 24, s_dist_02) ] = 0;
@@ -629,6 +689,7 @@ retry:
 		s_dist_08[ MakeAlphaString(24, 24, s_dist_08) ] = 0;
 		s_dist_09[ MakeAlphaString(24, 24, s_dist_09) ] = 0;
 		s_dist_10[ MakeAlphaString(24, 24, s_dist_10) ] = 0;
+		s_ytd[ MakeAlphaString(24, 24, s_ytd) ] = 0;
 		sdatasiz = MakeAlphaString(26, 50, s_data);
 		s_data[sdatasiz] = 0;
 
@@ -692,6 +753,9 @@ retry:
 		param[13].buffer_type = MYTNT_TYPE_STRING;
 		param[13].buffer = s_data;
 		param[13].buffer_length = strlen(s_data);
+
+		print_bind("stock", 13, param);
+
 		if( mytnt_stmt_bind_param(stmt[2], param) ) goto sqlerr;
 		if( (error = try_stmt_execute(stmt[2])) ) goto out;
 
@@ -739,6 +803,8 @@ District(w_id)
 	float           d_ytd;
 	int             d_next_o_id;
     int             error;
+    int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[11];
 
@@ -749,6 +815,14 @@ District(w_id)
 	d_ytd = 30000.0;
 	d_next_o_id = 3001L;
 retry:
+	if (retried) {
+		printf("Retrying ...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load district %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	for (d_id = 1; d_id <= DIST_PER_WARE; d_id++) {
 
 		/* Generate District Data */
@@ -793,6 +867,7 @@ retry:
 		param[9].buffer = &d_ytd;
 		param[10].buffer_type = MYTNT_TYPE_LONG;
 		param[10].buffer = &d_next_o_id;
+		print_bind("district", 10, param);
 		if( mytnt_stmt_bind_param(stmt[3], param) ) goto sqlerr;
 		if( (error = try_stmt_execute(stmt[3])) ) goto out;
 
@@ -845,6 +920,7 @@ Customer(d_id, w_id)
 
 	char            h_data[25];
     int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[18];
 
@@ -853,9 +929,14 @@ Customer(d_id, w_id)
 	printf("Loading Customer for DID=%ld, WID=%ld\n", d_id, w_id);
 
 retry:
-    if (retried)
-        printf("Retrying ...\n");
-    retried = 1;
+	if (retried) {
+		printf("Retrying ...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load customer %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	for (c_id = 1; c_id <= CUST_PER_DIST; c_id++) {
 
 		/* Generate Customer Data */
@@ -949,6 +1030,7 @@ retry:
 		param[17].buffer_type = MYTNT_TYPE_STRING;
 		param[17].buffer = c_data;
 		param[17].buffer_length = strlen(c_data);
+		print_bind("customer", 17, param);
 		if( mytnt_stmt_bind_param(stmt[4], param) ) goto sqlerr;
 		if( try_stmt_execute(stmt[4]) ) goto retry;
 
@@ -1031,6 +1113,7 @@ Orders(d_id, w_id)
 	float           c_discount;
 	float           tmp_float;
     int             retried = 0;
+    int             retries = 0;
 
 	MYTNT_BIND    param[10];
 
@@ -1040,9 +1123,14 @@ Orders(d_id, w_id)
 	o_d_id = d_id;
 	o_w_id = w_id;
 retry:
-    if (retried)
-        printf("Retrying ...\n");
-    retried = 1;
+	if (retried) {
+		printf("Retrying ...\n");
+		if (++retries > MAX_LOAD_RETRIES) {
+			printf("Failed to load orders %d times, bailing", retries);
+			Error(0);
+		}
+	}
+	retried = 1;
 	InitPermutation();	/* initialize permutation of customer numbers */
 	for (o_id = 1; o_id <= ORD_PER_DIST; o_id++) {
 
@@ -1073,6 +1161,7 @@ retry:
 		    param[4].buffer_length = strlen(timestamp);
 		    param[5].buffer_type = MYTNT_TYPE_LONG;
 		    param[5].buffer = &o_ol_cnt;
+		    print_bind("history", 5, param);
 		    if( mytnt_stmt_bind_param(stmt[6], param) ) goto sqlerr;
 		    if( try_stmt_execute(stmt[6]) ) goto retry;
 
@@ -1087,6 +1176,7 @@ retry:
 		    param[1].buffer = &o_d_id;
 		    param[2].buffer_type = MYTNT_TYPE_LONG;
 		    param[2].buffer = &o_w_id;
+		    print_bind("new_orders", 2, param);
 		    if( mytnt_stmt_bind_param(stmt[7], param) ) goto sqlerr;
 		    if( try_stmt_execute(stmt[7]) ) goto retry;
 
@@ -1113,6 +1203,8 @@ retry:
 		    param[5].buffer = &o_carrier_id;
 		    param[6].buffer_type = MYTNT_TYPE_LONG;
 		    param[6].buffer = &o_ol_cnt;
+		    print_bind("orders", 6, param);
+		    if( mytnt_stmt_bind_param(stmt[7], param) ) goto sqlerr;
 		    if( mytnt_stmt_bind_param(stmt[8], param) ) goto sqlerr;
 		    if( try_stmt_execute(stmt[8]) ) goto retry;
 
@@ -1161,6 +1253,7 @@ retry:
 			    param[8].buffer_type = MYTNT_TYPE_STRING;
 			    param[8].buffer = ol_dist_info;
 			    param[8].buffer_length = strlen(ol_dist_info);
+			    print_bind("order_line1", 8, param);
 			    if( mytnt_stmt_bind_param(stmt[9], param) ) goto sqlerr;
 			    if( try_stmt_execute(stmt[9]) ) goto retry;
 
@@ -1195,6 +1288,7 @@ retry:
 			    param[9].buffer_type = MYTNT_TYPE_STRING;
 			    param[9].buffer = ol_dist_info;
 			    param[9].buffer_length = strlen(ol_dist_info);
+			    print_bind("order_line2", 9, param);
 			    if( mytnt_stmt_bind_param(stmt[10], param) ) goto sqlerr;
 			    if( try_stmt_execute(stmt[10]) ) goto retry;
 			}
