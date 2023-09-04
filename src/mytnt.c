@@ -145,8 +145,12 @@ int mytnt_stmt_execute(MYTNT_STMT *stmt) {
 	}
 
 	if (reply->error) {
-		stmt->mytnt->error_info = (char *) malloc(1024 * sizeof(char));
-		strcpy(stmt->mytnt->error_info, reply->error);
+		// Note that reply->error is not a null-terminated string,
+		// so reply->error_end pointer is used to properly copy it
+		// to destination.
+		size_t error_len = reply->error_end - reply->error;
+		stmt->mytnt->error_info = calloc(error_len + 1, sizeof(char));
+		strncpy(stmt->mytnt->error_info, reply->error, error_len);
 		tnt_reply_free(reply);
 		return stmt->mytnt->error_no;
 	}
