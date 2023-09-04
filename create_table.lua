@@ -15,8 +15,8 @@ w_street_2 varchar(20), \
 w_city varchar(20), \
 w_state varchar(2), \
 w_zip varchar(9), \
-w_tax varchar(7), \
-w_ytd varchar(15), \
+w_tax double, \
+w_ytd double, \
 primary key (w_id) )")
 
 box.execute("drop table if exists district;")
@@ -29,8 +29,8 @@ d_street_2 varchar(20), \
 d_city varchar(20), \
 d_state varchar(2), \
 d_zip varchar(9), \
-d_tax varchar(7), \
-d_ytd varchar(15), \
+d_tax double, \
+d_ytd double, \
 d_next_o_id int, \
 primary key (d_w_id, d_id), \
 FOREIGN KEY(d_w_id) REFERENCES warehouse(w_id) );")
@@ -52,9 +52,9 @@ c_phone varchar(16), \
 c_since varchar(100), \
 c_credit varchar(2), \
 c_credit_lim int, \
-c_discount varchar(7), \
-c_balance varchar(15), \
-c_ytd_payment varchar(15), \
+c_discount double, \
+c_balance double, \
+c_ytd_payment double, \
 c_payment_cnt int, \
 c_delivery_cnt int, \
 c_data text, \
@@ -70,7 +70,7 @@ h_c_w_id int, \
 h_d_id int, \
 h_w_id int, \
 h_date varchar(100), \
-h_amount varchar(9), \
+h_amount double, \
 h_data varchar(24), \
 FOREIGN KEY(h_c_w_id,h_c_d_id,h_c_id) REFERENCES customer(c_w_id,c_d_id,c_id), \
 FOREIGN KEY(h_w_id,h_d_id) REFERENCES district(d_w_id,d_id) );")
@@ -101,7 +101,7 @@ box.execute("create table item ( \
 i_id int not null, \
 i_im_id int, \
 i_name varchar(24), \
-i_price varchar(8), \
+i_price double, \
 i_data varchar(50), \
 PRIMARY KEY(i_id) );")
 
@@ -120,7 +120,7 @@ s_dist_07 varchar(24), \
 s_dist_08 varchar(24), \
 s_dist_09 varchar(24), \
 s_dist_10 varchar(24), \
-s_ytd varchar(9), \
+s_ytd double, \
 s_order_cnt int, \
 s_remote_cnt int, \
 s_data varchar(50), \
@@ -138,7 +138,7 @@ ol_i_id int, \
 ol_supply_w_id int, \
 ol_delivery_d varchar(100), \
 ol_quantity int, \
-ol_amount varchar(9), \
+ol_amount double, \
 ol_dist_info varchar(24), \
 PRIMARY KEY(ol_w_id, ol_d_id, ol_o_id, ol_number), \
 FOREIGN KEY(ol_w_id,ol_d_id,ol_o_id) REFERENCES orders(o_w_id,o_d_id,o_id), \
